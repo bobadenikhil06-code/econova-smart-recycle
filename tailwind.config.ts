@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        heading: "var(--font-heading)",
+        body: "var(--font-body)",
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -22,6 +26,13 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          light: "hsl(var(--primary-light))",
+          glow: "hsl(var(--primary-glow))",
+        },
+        earth: {
+          brown: "hsl(var(--earth-brown))",
+          light: "hsl(var(--earth-light))",
+          medium: "hsl(var(--earth-medium))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
