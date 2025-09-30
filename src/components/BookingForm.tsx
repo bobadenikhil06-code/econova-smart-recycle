@@ -12,7 +12,8 @@ import {
   CheckCircle,
   ArrowRight,
   Phone,
-  User
+  User,
+  Tag
 } from "lucide-react";
 
 const BookingForm = () => {
@@ -25,7 +26,8 @@ const BookingForm = () => {
     estimatedWeight: "",
     preferredDate: "",
     preferredTime: "",
-    notes: ""
+    notes: "",
+    couponCode: ""
   });
 
   const categories = [
@@ -222,6 +224,33 @@ const BookingForm = () => {
                       className="mt-1"
                       rows={3}
                     />
+                  </div>
+
+                  {/* Coupon Code */}
+                  <div className="space-y-2">
+                    <Label htmlFor="coupon" className="flex items-center gap-2">
+                      <Tag className="w-4 h-4 text-primary" />
+                      Have a Coupon Code?
+                    </Label>
+                    <div className="flex gap-2">
+                      <Input
+                        id="coupon"
+                        placeholder="Enter code (e.g., WELCOME100)"
+                        value={formData.couponCode}
+                        onChange={(e) => handleInputChange("couponCode", e.target.value.toUpperCase())}
+                        className="mt-1 font-mono"
+                      />
+                      <Button 
+                        type="button" 
+                        variant="outline"
+                        className="mt-1"
+                      >
+                        Apply
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Check our rewards section for active offers and discount codes
+                    </p>
                   </div>
 
                   {/* Submit Button */}

@@ -3,6 +3,7 @@ import Hero from "@/components/Hero";
 import HowItWorks from "@/components/HowItWorks";
 import ScrapCategories from "@/components/ScrapCategories";
 import MarketDetector from "@/components/MarketDetector";
+import Rewards from "@/components/Rewards";
 import BookingForm from "@/components/BookingForm";
 import Sustainability from "@/components/Sustainability";
 import Testimonials from "@/components/Testimonials";
@@ -17,6 +18,7 @@ const Index = () => {
         <HowItWorks />
         <ScrapCategories />
         <MarketDetector />
+        <Rewards />
         <BookingForm />
         <Sustainability />
         <Testimonials />
