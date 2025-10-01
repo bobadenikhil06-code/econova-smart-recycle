@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 const ScrapCategories = () => {
-  const categories = [
+  const dryWaste = [
     {
       icon: FileText,
       name: "Paper",
@@ -63,6 +63,30 @@ const ScrapCategories = () => {
     }
   ];
 
+  const wetWaste = [
+    {
+      icon: Wine,
+      name: "Food Waste",
+      items: ["Vegetable Peels", "Fruit Scraps", "Cooked Food", "Leftovers"],
+      rate: "₹5-8/kg",
+      color: "from-green-600 to-green-700"
+    },
+    {
+      icon: Recycle,
+      name: "Garden Waste",
+      items: ["Leaves", "Grass Clippings", "Flowers", "Branches"],
+      rate: "₹3-6/kg",
+      color: "from-emerald-500 to-emerald-600"
+    },
+    {
+      icon: FileText,
+      name: "Organic Waste",
+      items: ["Tea Bags", "Coffee Grounds", "Eggshells", "Paper Napkins"],
+      rate: "₹4-7/kg",
+      color: "from-lime-500 to-lime-600"
+    }
+  ];
+
   return (
     <section className="py-20 bg-white">
       <div className="container mx-auto px-6">
@@ -72,38 +96,76 @@ const ScrapCategories = () => {
             What We <span className="text-gradient">Collect</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            From everyday household items to specialized waste - we handle it all with care and transparency
+            Organized by waste type for better recycling and environmental impact
           </p>
         </div>
 
-        {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-12">
-          {categories.map((category, index) => (
-            <div key={index} className="eco-card p-6 group cursor-pointer">
-              {/* Icon with Gradient Background */}
-              <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
-                <category.icon className="w-7 h-7 text-white" />
-              </div>
-              
-              {/* Category Name */}
-              <h3 className="text-xl font-bold text-foreground mb-2">{category.name}</h3>
-              
-              {/* Current Rate */}
-              <div className="bg-primary/10 text-primary font-semibold px-3 py-1 rounded-full text-sm mb-4 inline-block">
-                {category.rate}
-              </div>
-              
-              {/* Items List */}
-              <ul className="space-y-1 text-sm text-muted-foreground">
-                {category.items.map((item, itemIndex) => (
-                  <li key={itemIndex} className="flex items-center">
-                    <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
+        {/* Dry Waste Section */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+              <Recycle className="w-6 h-6 text-white" />
             </div>
-          ))}
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Dry Waste</h3>
+              <p className="text-muted-foreground">Recyclable materials that can be processed and reused</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {dryWaste.map((category, index) => (
+              <div key={index} className="eco-card p-6 group cursor-pointer">
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <category.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">{category.name}</h3>
+                <div className="bg-primary/10 text-primary font-semibold px-3 py-1 rounded-full text-sm mb-4 inline-block">
+                  {category.rate}
+                </div>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {category.items.map((item, itemIndex) => (
+                    <li key={itemIndex} className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Wet Waste Section */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 bg-gradient-to-br from-green-600 to-green-700 rounded-xl flex items-center justify-center">
+              <Wine className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h3 className="text-2xl font-bold text-foreground">Wet Waste</h3>
+              <p className="text-muted-foreground">Biodegradable organic materials for composting</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {wetWaste.map((category, index) => (
+              <div key={index} className="eco-card p-6 group cursor-pointer">
+                <div className={`w-14 h-14 rounded-xl bg-gradient-to-br ${category.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                  <category.icon className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-xl font-bold text-foreground mb-2">{category.name}</h3>
+                <div className="bg-primary/10 text-primary font-semibold px-3 py-1 rounded-full text-sm mb-4 inline-block">
+                  {category.rate}
+                </div>
+                <ul className="space-y-1 text-sm text-muted-foreground">
+                  {category.items.map((item, itemIndex) => (
+                    <li key={itemIndex} className="flex items-center">
+                      <div className="w-1.5 h-1.5 bg-primary rounded-full mr-2"></div>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Special Hair Collection Highlight */}
