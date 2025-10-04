@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { 
   Menu, 
@@ -7,11 +9,42 @@ import {
   Phone, 
   MapPin, 
   TrendingUp,
-  Calendar
+  Calendar,
+  LogIn,
+  LogOut,
+  User
 } from "lucide-react";
+import { toast } from "sonner";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      toast.error("Error logging out");
+    } else {
+      toast.success("Logged out successfully");
+      navigate("/");
+    }
+  };
 
   const navItems = [
     { label: "How It Works", href: "#how-it-works" },
@@ -51,14 +84,36 @@ const Navbar = () => {
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => document.getElementById('market-detector')?.scrollIntoView({ behavior: 'smooth' })}>
               <TrendingUp className="w-4 h-4" />
               Live Rates
             </Button>
-            <Button size="sm" className="bg-primary hover:bg-primary/90 flex items-center gap-2">
-              <Calendar className="w-4 h-4" />
-              Schedule Pickup
-            </Button>
+            {user ? (
+              <>
+                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  {user.email?.split('@')[0]}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button 
+                size="sm" 
+                className="bg-primary hover:bg-primary/90 flex items-center gap-2"
+                onClick={() => navigate("/auth")}
+              >
+                <LogIn className="w-4 h-4" />
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -85,14 +140,50 @@ const Navbar = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 mt-4">
-                <Button variant="outline" size="sm" className="flex items-center gap-2 justify-center">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-2 justify-center"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    document.getElementById('market-detector')?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
                   <TrendingUp className="w-4 h-4" />
                   Live Rates
                 </Button>
-                <Button size="sm" className="bg-primary hover:bg-primary/90 flex items-center gap-2 justify-center">
-                  <Calendar className="w-4 h-4" />
-                  Schedule Pickup
-                </Button>
+                {user ? (
+                  <>
+                    <Button variant="ghost" size="sm" className="flex items-center gap-2 justify-center">
+                      <User className="w-4 h-4" />
+                      {user.email?.split('@')[0]}
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex items-center gap-2 justify-center"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className="bg-primary hover:bg-primary/90 flex items-center gap-2 justify-center"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      navigate("/auth");
+                    }}
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Login
+                  </Button>
+                )}
               </div>
             </div>
           </div>
