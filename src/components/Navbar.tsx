@@ -90,9 +90,14 @@ const Navbar = () => {
             </Button>
             {user ? (
               <>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="flex items-center gap-2"
+                  onClick={() => navigate("/dashboard")}
+                >
                   <User className="w-4 h-4" />
-                  {user.email?.split('@')[0]}
+                  Dashboard
                 </Button>
                 <Button 
                   variant="outline" 
@@ -154,9 +159,17 @@ const Navbar = () => {
                 </Button>
                 {user ? (
                   <>
-                    <Button variant="ghost" size="sm" className="flex items-center gap-2 justify-center">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="flex items-center gap-2 justify-center"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        navigate("/dashboard");
+                      }}
+                    >
                       <User className="w-4 h-4" />
-                      {user.email?.split('@')[0]}
+                      Dashboard
                     </Button>
                     <Button 
                       variant="outline" 
