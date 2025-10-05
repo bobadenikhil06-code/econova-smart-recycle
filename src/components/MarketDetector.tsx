@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useMarketRates, useMarketRateHistory } from "@/hooks/useMarketRates";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { 
   TrendingUp, 
   TrendingDown, 
@@ -11,52 +13,49 @@ import {
 } from "lucide-react";
 
 const MarketDetector = () => {
-  const [selectedCategory, setSelectedCategory] = useState("Paper");
-  
-  const marketData = {
-    Paper: { 
-      price: 14, 
-      trend: 5.2, 
-      weekly: [12, 13, 14, 13, 15, 14, 14],
-      location: "Mumbai"
-    },
-    Plastic: { 
-      price: 22, 
-      trend: -2.1, 
-      weekly: [23, 24, 22, 21, 22, 23, 22],
-      location: "Mumbai"
-    },
-    Metal: { 
-      price: 85, 
-      trend: 8.5, 
-      weekly: [78, 80, 82, 85, 87, 85, 85],
-      location: "Mumbai"
-    },
-    Electronics: { 
-      price: 150, 
-      trend: 12.3, 
-      weekly: [135, 140, 145, 150, 155, 150, 150],
-      location: "Mumbai"
-    },
-    Glass: { 
-      price: 10, 
-      trend: 0, 
-      weekly: [10, 10, 10, 10, 10, 10, 10],
-      location: "Mumbai"
-    },
-    Hair: { 
-      price: 500, 
-      trend: 15.6, 
-      weekly: [450, 460, 480, 500, 520, 500, 500],
-      location: "Mumbai"
-    }
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+  const { data: marketRates, isLoading } = useMarketRates("Mumbai");
+  const { data: historyData } = useMarketRateHistory(selectedCategoryId || "", "Mumbai", 30);
+
+  // Get unique categories and select first one by default
+  const categories = marketRates || [];
+  const selectedRate = selectedCategoryId 
+    ? categories.find(r => r.category_id === selectedCategoryId)
+    : categories[0];
+
+  // Calculate trend from history
+  const calculateTrend = () => {
+    if (!historyData || historyData.length < 2) return 0;
+    const oldest = historyData[0].price_per_kg;
+    const newest = historyData[historyData.length - 1].price_per_kg;
+    return ((newest - oldest) / oldest) * 100;
   };
 
-  const categories = Object.keys(marketData);
-  const currentData = marketData[selectedCategory as keyof typeof marketData];
+  const trend = calculateTrend();
+
+  // Format history data for chart
+  const chartData = historyData?.map(rate => ({
+    date: new Date(rate.date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' }),
+    price: Number(rate.price_per_kg)
+  })) || [];
+
+  // Set initial category
+  if (!selectedCategoryId && categories.length > 0) {
+    setSelectedCategoryId(categories[0].category_id);
+  }
+
+  if (isLoading || !selectedRate) {
+    return (
+      <section id="market-detector" className="py-20 bg-gradient-to-br from-primary/5 via-white to-accent/10">
+        <div className="container mx-auto px-6 text-center">
+          <p className="text-muted-foreground">Loading market rates...</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
-    <section className="py-20 bg-gradient-to-br from-primary/5 via-white to-accent/10">
+    <section id="market-detector" className="py-20 bg-gradient-to-br from-primary/5 via-white to-accent/10">
       <div className="container mx-auto px-6">
         {/* Section Header */}
         <div className="text-center mb-16">
@@ -77,21 +76,21 @@ const MarketDetector = () => {
           <div className="lg:col-span-1">
             <h3 className="text-xl font-bold text-foreground mb-4">Select Category</h3>
             <div className="space-y-2">
-              {categories.map((category) => (
+              {categories.map((rate) => (
                 <button
-                  key={category}
-                  onClick={() => setSelectedCategory(category)}
+                  key={rate.category_id}
+                  onClick={() => setSelectedCategoryId(rate.category_id)}
                   className={`w-full text-left p-4 rounded-xl transition-all duration-300 ${
-                    selectedCategory === category
+                    selectedCategoryId === rate.category_id
                       ? "bg-primary text-white shadow-lg"
                       : "bg-white border border-border hover:border-primary/50"
                   }`}
                 >
-                  <div className="font-semibold">{category}</div>
+                  <div className="font-semibold">{rate.scrap_categories?.name}</div>
                   <div className={`text-sm ${
-                    selectedCategory === category ? "text-white/80" : "text-muted-foreground"
+                    selectedCategoryId === rate.category_id ? "text-white/80" : "text-muted-foreground"
                   }`}>
-                    ₹{marketData[category as keyof typeof marketData].price}/kg
+                    ₹{rate.price_per_kg}/kg
                   </div>
                 </button>
               ))}
@@ -104,57 +103,75 @@ const MarketDetector = () => {
             <Card className="p-8 border-0 shadow-xl bg-gradient-to-br from-white to-primary/5">
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h3 className="text-3xl font-bold text-foreground mb-2">{selectedCategory}</h3>
+                  <h3 className="text-3xl font-bold text-foreground mb-2">{selectedRate.scrap_categories?.name}</h3>
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <MapPin className="w-4 h-4" />
-                    <span>{currentData.location}</span>
+                    <span>{selectedRate.location}</span>
                   </div>
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-primary mb-2">
-                    ₹{currentData.price}
+                    ₹{selectedRate.price_per_kg}
                     <span className="text-lg text-muted-foreground">/kg</span>
                   </div>
                   <div className={`flex items-center gap-1 ${
-                    currentData.trend > 0 ? "text-green-600" : 
-                    currentData.trend < 0 ? "text-red-600" : "text-gray-600"
+                    trend > 0 ? "text-green-600" : 
+                    trend < 0 ? "text-red-600" : "text-gray-600"
                   }`}>
-                    {currentData.trend > 0 ? (
+                    {trend > 0 ? (
                       <TrendingUp className="w-4 h-4" />
-                    ) : currentData.trend < 0 ? (
+                    ) : trend < 0 ? (
                       <TrendingDown className="w-4 h-4" />
                     ) : (
                       <DollarSign className="w-4 h-4" />
                     )}
                     <span className="font-semibold">
-                      {currentData.trend > 0 ? "+" : ""}{currentData.trend}%
+                      {trend > 0 ? "+" : ""}{trend.toFixed(1)}%
                     </span>
-                    <span className="text-muted-foreground text-sm">7d</span>
+                    <span className="text-muted-foreground text-sm">30d</span>
                   </div>
                 </div>
               </div>
 
-              {/* Simple 7-day Chart */}
+              {/* Stock Market Style Chart */}
               <div className="mb-6">
                 <h4 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  7-Day Price Trend
+                  <TrendingUp className="w-4 h-4" />
+                  30-Day Price History
                 </h4>
-                <div className="flex items-end justify-between h-24 gap-1">
-                  {currentData.weekly.map((price, index) => {
-                    const height = (price / Math.max(...currentData.weekly)) * 100;
-                    return (
-                      <div key={index} className="flex flex-col items-center flex-1">
-                        <div 
-                          className="w-full bg-primary rounded-t opacity-80 hover:opacity-100 transition-opacity duration-300 min-h-[4px]"
-                          style={{ height: `${height}%` }}
-                        />
-                        <div className="text-xs text-muted-foreground mt-2">
-                          {index === 6 ? "Today" : `${7-index}d`}
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="h-64 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis 
+                        dataKey="date" 
+                        stroke="#64748b"
+                        style={{ fontSize: '12px' }}
+                      />
+                      <YAxis 
+                        stroke="#64748b"
+                        style={{ fontSize: '12px' }}
+                        tickFormatter={(value) => `₹${value}`}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'white', 
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '8px',
+                          padding: '8px'
+                        }}
+                        formatter={(value: any) => [`₹${value}`, 'Price']}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="price" 
+                        stroke="#22c55e" 
+                        strokeWidth={3}
+                        dot={{ fill: '#22c55e', r: 4 }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
@@ -179,8 +196,8 @@ const MarketDetector = () => {
                   <span className="font-semibold text-green-800">Best Time to Sell</span>
                 </div>
                 <p className="text-sm text-green-700">
-                  {selectedCategory} prices are {currentData.trend > 0 ? "rising" : currentData.trend < 0 ? "falling" : "stable"}. 
-                  {currentData.trend > 5 ? " Great time to sell!" : currentData.trend > 0 ? " Consider selling soon." : " Monitor for better rates."}
+                  {selectedRate.scrap_categories?.name} prices are {trend > 0 ? "rising" : trend < 0 ? "falling" : "stable"}. 
+                  {trend > 5 ? " Great time to sell!" : trend > 0 ? " Consider selling soon." : " Monitor for better rates."}
                 </p>
               </Card>
               

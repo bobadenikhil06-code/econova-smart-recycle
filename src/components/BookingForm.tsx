@@ -1,9 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import MapLocationPicker from "./MapLocationPicker";
+import { supabase } from "@/integrations/supabase/client";
+import { useScrapCategories } from "@/hooks/useScrapCategories";
+import { toast } from "sonner";
 import { 
   MapPin, 
   Calendar, 
@@ -17,22 +22,22 @@ import {
 } from "lucide-react";
 
 const BookingForm = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState<any>(null);
+  const [showMap, setShowMap] = useState(false);
+  const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
+  const { data: categories } = useScrapCategories();
+  
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     address: "",
-    pincode: "",
     category: "",
     estimatedWeight: "",
     preferredDate: "",
     preferredTime: "",
-    notes: "",
-    couponCode: ""
+    notes: ""
   });
-
-  const categories = [
-    "Paper", "Plastic", "Metal", "Electronics", "Glass", "E-Waste", "Hair", "Mixed"
-  ];
 
   const timeSlots = [
     "9:00 AM - 12:00 PM",
@@ -41,14 +46,73 @@ const BookingForm = () => {
     "6:00 PM - 8:00 PM"
   ];
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleLocationSelect = (address: string, coords: [number, number]) => {
+    setFormData(prev => ({ ...prev, address }));
+    setCoordinates(coords);
+    setShowMap(false);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission
-    console.log("Booking submitted:", formData);
+    
+    if (!user) {
+      toast.error("Please login to book a pickup");
+      navigate("/auth");
+      return;
+    }
+
+    if (!formData.category || !formData.estimatedWeight || !formData.address || !formData.preferredDate || !formData.preferredTime) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      const pickupDateTime = new Date(`${formData.preferredDate} ${formData.preferredTime.split(' - ')[0]}`);
+      
+      const { error } = await supabase.from("bookings").insert({
+        user_id: user.id,
+        category_id: formData.category,
+        estimated_weight: parseFloat(formData.estimatedWeight),
+        pickup_address: formData.address,
+        pickup_time: pickupDateTime.toISOString(),
+        notes: formData.notes || null,
+        status: "pending"
+      });
+
+      if (error) throw error;
+
+      toast.success("Booking created successfully!");
+      setFormData({
+        name: "",
+        phone: "",
+        address: "",
+        category: "",
+        estimatedWeight: "",
+        preferredDate: "",
+        preferredTime: "",
+        notes: ""
+      });
+      navigate("/dashboard");
+    } catch (error: any) {
+      console.error("Error creating booking:", error);
+      toast.error(error.message || "Failed to create booking");
+    }
   };
 
   return (
@@ -108,38 +172,37 @@ const BookingForm = () => {
                       Pickup Location
                     </h3>
                     
-                    <div>
-                      <Label htmlFor="address">Complete Address</Label>
-                      <Textarea
-                        id="address"
-                        placeholder="House/Flat No., Street, Area, Landmark"
-                        value={formData.address}
-                        onChange={(e) => handleInputChange("address", e.target.value)}
-                        className="mt-1"
-                        rows={3}
+                    {!showMap ? (
+                      <>
+                        <div>
+                          <Label htmlFor="address">Complete Address *</Label>
+                          <Textarea
+                            id="address"
+                            placeholder="House/Flat No., Street, Area, Landmark"
+                            value={formData.address}
+                            onChange={(e) => handleInputChange("address", e.target.value)}
+                            className="mt-1"
+                            rows={3}
+                            required
+                          />
+                        </div>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => setShowMap(true)}
+                        >
+                          <MapPin className="w-4 h-4 mr-2" />
+                          Select Location on Map
+                        </Button>
+                      </>
+                    ) : (
+                      <MapLocationPicker 
+                        onLocationSelect={handleLocationSelect}
+                        defaultAddress={formData.address}
                       />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label htmlFor="pincode">PIN Code</Label>
-                        <Input
-                          id="pincode"
-                          placeholder="400001"
-                          value={formData.pincode}
-                          onChange={(e) => handleInputChange("pincode", e.target.value)}
-                          className="mt-1"
-                        />
-                      </div>
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        className="mt-6 h-10"
-                      >
-                        <MapPin className="w-4 h-4 mr-2" />
-                        Detect Location
-                      </Button>
-                    </div>
+                    )}
                   </div>
 
                   {/* Scrap Details */}
@@ -151,27 +214,32 @@ const BookingForm = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="category">Primary Category</Label>
+                        <Label htmlFor="category">Primary Category *</Label>
                         <select
                           id="category"
                           value={formData.category}
                           onChange={(e) => handleInputChange("category", e.target.value)}
                           className="mt-1 w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          required
                         >
                           <option value="">Select category</option>
-                          {categories.map((cat) => (
-                            <option key={cat} value={cat}>{cat}</option>
+                          {categories?.map((cat) => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
                           ))}
                         </select>
                       </div>
                       <div>
-                        <Label htmlFor="weight">Estimated Weight (kg)</Label>
+                        <Label htmlFor="weight">Estimated Weight (kg) *</Label>
                         <Input
                           id="weight"
+                          type="number"
+                          min="1"
+                          step="0.1"
                           placeholder="e.g., 10"
                           value={formData.estimatedWeight}
                           onChange={(e) => handleInputChange("estimatedWeight", e.target.value)}
                           className="mt-1"
+                          required
                         />
                       </div>
                     </div>
@@ -186,7 +254,7 @@ const BookingForm = () => {
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="date">Preferred Date</Label>
+                        <Label htmlFor="date">Preferred Date *</Label>
                         <Input
                           id="date"
                           type="date"
@@ -194,15 +262,17 @@ const BookingForm = () => {
                           onChange={(e) => handleInputChange("preferredDate", e.target.value)}
                           className="mt-1"
                           min={new Date().toISOString().split('T')[0]}
+                          required
                         />
                       </div>
                       <div>
-                        <Label htmlFor="time">Preferred Time</Label>
+                        <Label htmlFor="time">Preferred Time *</Label>
                         <select
                           id="time"
                           value={formData.preferredTime}
                           onChange={(e) => handleInputChange("preferredTime", e.target.value)}
                           className="mt-1 w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                          required
                         >
                           <option value="">Select time slot</option>
                           {timeSlots.map((slot) => (
@@ -226,32 +296,6 @@ const BookingForm = () => {
                     />
                   </div>
 
-                  {/* Coupon Code */}
-                  <div className="space-y-2">
-                    <Label htmlFor="coupon" className="flex items-center gap-2">
-                      <Tag className="w-4 h-4 text-primary" />
-                      Have a Coupon Code?
-                    </Label>
-                    <div className="flex gap-2">
-                      <Input
-                        id="coupon"
-                        placeholder="Enter code (e.g., WELCOME100)"
-                        value={formData.couponCode}
-                        onChange={(e) => handleInputChange("couponCode", e.target.value.toUpperCase())}
-                        className="mt-1 font-mono"
-                      />
-                      <Button 
-                        type="button" 
-                        variant="outline"
-                        className="mt-1"
-                      >
-                        Apply
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Check our rewards section for active offers and discount codes
-                    </p>
-                  </div>
 
                   {/* Submit Button */}
                   <Button 

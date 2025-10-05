@@ -46,12 +46,19 @@ const Navbar = () => {
     }
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   const navItems = [
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Categories", href: "#categories" },
-    { label: "Live Rates", href: "#market-detector" },
-    { label: "About", href: "#about" },
-    { label: "Contact", href: "#contact" },
+    { label: "How It Works", id: "how-it-works" },
+    { label: "Categories", id: "categories" },
+    { label: "Live Rates", id: "market-detector" },
+    { label: "About", id: "about" },
+    { label: "Contact", id: "contact" },
   ];
 
   return (
@@ -72,19 +79,19 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-8">
             {navItems.map((item) => (
-              <a
+              <button
                 key={item.label}
-                href={item.href}
+                onClick={() => scrollToSection(item.id)}
                 className="text-foreground hover:text-primary transition-colors duration-300 font-medium"
               >
                 {item.label}
-              </a>
+              </button>
             ))}
           </div>
 
           {/* Action Buttons */}
           <div className="hidden md:flex items-center gap-3">
-            <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => document.getElementById('market-detector')?.scrollIntoView({ behavior: 'smooth' })}>
+            <Button variant="outline" size="sm" className="flex items-center gap-2" onClick={() => scrollToSection('market-detector')}>
               <TrendingUp className="w-4 h-4" />
               Live Rates
             </Button>
@@ -135,14 +142,16 @@ const Navbar = () => {
           <div className="lg:hidden mt-4 pb-4 border-t border-border">
             <div className="flex flex-col gap-4 mt-4">
               {navItems.map((item) => (
-                <a
+                <button
                   key={item.label}
-                  href={item.href}
-                  className="text-foreground hover:text-primary transition-colors duration-300 font-medium py-2"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    scrollToSection(item.id);
+                  }}
+                  className="text-foreground hover:text-primary transition-colors duration-300 font-medium py-2 text-left"
                 >
                   {item.label}
-                </a>
+                </button>
               ))}
               <div className="flex flex-col gap-2 mt-4">
                 <Button 
@@ -151,7 +160,7 @@ const Navbar = () => {
                   className="flex items-center gap-2 justify-center"
                   onClick={() => {
                     setIsMenuOpen(false);
-                    document.getElementById('market-detector')?.scrollIntoView({ behavior: 'smooth' });
+                    scrollToSection('market-detector');
                   }}
                 >
                   <TrendingUp className="w-4 h-4" />
