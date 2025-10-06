@@ -3,6 +3,20 @@ import { ArrowRight, Calendar, Recycle } from "lucide-react";
 import heroImage from "@/assets/hero-recycling.jpg";
 
 const Hero = () => {
+  const scrollToBooking = () => {
+    const bookingSection = document.getElementById("booking");
+    if (bookingSection) {
+      bookingSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const scrollToRates = () => {
+    const ratesSection = document.getElementById("market-rates");
+    if (ratesSection) {
+      ratesSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
@@ -41,6 +55,7 @@ const Hero = () => {
             <Button 
               size="lg" 
               className="hero-gradient text-white border-0 px-8 py-6 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+              onClick={scrollToBooking}
             >
               <Calendar className="w-5 h-5 mr-2" />
               Schedule Pickup
@@ -51,6 +66,7 @@ const Hero = () => {
               variant="outline" 
               size="lg"
               className="bg-white/10 border-white/30 text-white hover:bg-white/20 px-8 py-6 text-lg font-semibold rounded-xl backdrop-blur-sm"
+              onClick={scrollToRates}
             >
               Check Live Rates
             </Button>

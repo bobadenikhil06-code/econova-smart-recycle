@@ -17,7 +17,7 @@ const Index = () => {
         <Hero />
         <section id="how-it-works"><HowItWorks /></section>
         <section id="categories"><ScrapCategories /></section>
-        <MarketDetector />
+        <section id="market-rates"><MarketDetector /></section>
         <Rewards />
         <section id="booking"><BookingForm /></section>
         <section id="about"><Sustainability /></section>

@@ -15,30 +15,27 @@ import {
 
 const Footer = () => {
   const quickLinks = [
-    { label: "How It Works", href: "#how-it-works" },
-    { label: "Categories", href: "#categories" },
-    { label: "Live Rates", href: "#market-detector" },
-    { label: "Schedule Pickup", href: "#booking" },
-    { label: "Track Pickup", href: "#track" },
-    { label: "Bulk Orders", href: "#bulk" }
+    { label: "How It Works", href: "how-it-works" },
+    { label: "Categories", href: "categories" },
+    { label: "Live Rates", href: "market-rates" },
+    { label: "Schedule Pickup", href: "booking" },
   ];
 
   const companyLinks = [
-    { label: "About Econova", href: "#about" },
-    { label: "Our Impact", href: "#sustainability" },
-    { label: "Careers", href: "#careers" },
-    { label: "Press & Media", href: "#press" },
-    { label: "Partner with Us", href: "#partners" },
-    { label: "Investor Relations", href: "#investors" }
+    { label: "About Econova", href: "about" },
+    { label: "Contact Us", href: "contact" },
   ];
 
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   const supportLinks = [
-    { label: "Help Center", href: "#help" },
-    { label: "Contact Support", href: "#contact" },
-    { label: "Safety Guidelines", href: "#safety" },
-    { label: "Pickup Policy", href: "#policy" },
-    { label: "Pricing Guide", href: "#pricing" },
-    { label: "FAQs", href: "#faq" }
+    { label: "Help Center", href: "contact" },
+    { label: "Contact Support", href: "contact" },
   ];
 
   const legalLinks = [
@@ -93,13 +90,13 @@ const Footer = () => {
               <h4 className="text-lg font-semibold mb-6">Quick Links</h4>
               <div className="space-y-3">
                 {quickLinks.map((link, index) => (
-                  <a
+                  <button
                     key={index}
-                    href={link.href}
-                    className="block text-white/80 hover:text-white transition-colors duration-300"
+                    onClick={() => scrollToSection(link.href)}
+                    className="block text-white/80 hover:text-white transition-colors duration-300 text-left"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>
@@ -109,13 +106,13 @@ const Footer = () => {
               <h4 className="text-lg font-semibold mb-6">Company</h4>
               <div className="space-y-3">
                 {companyLinks.map((link, index) => (
-                  <a
+                  <button
                     key={index}
-                    href={link.href}
-                    className="block text-white/80 hover:text-white transition-colors duration-300"
+                    onClick={() => scrollToSection(link.href)}
+                    className="block text-white/80 hover:text-white transition-colors duration-300 text-left"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>
@@ -170,13 +167,13 @@ const Footer = () => {
               <h4 className="font-semibold mb-4">Support</h4>
               <div className="grid grid-cols-2 gap-2">
                 {supportLinks.map((link, index) => (
-                  <a
+                  <button
                     key={index}
-                    href={link.href}
-                    className="text-sm text-white/70 hover:text-white transition-colors duration-300"
+                    onClick={() => scrollToSection(link.href)}
+                    className="text-sm text-white/70 hover:text-white transition-colors duration-300 text-left"
                   >
                     {link.label}
-                  </a>
+                  </button>
                 ))}
               </div>
             </div>
@@ -202,18 +199,6 @@ const Footer = () => {
         {/* Bottom Footer */}
         <div className="border-t border-white/20 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <div className="flex flex-wrap items-center gap-4 text-sm text-white/70">
-              {legalLinks.map((link, index) => (
-                <a
-                  key={index}
-                  href={link.href}
-                  className="hover:text-white transition-colors duration-300"
-                >
-                  {link.label}
-                </a>
-              ))}
-            </div>
-            
             <div className="text-sm text-white/70 flex items-center gap-2">
               <span>© 2024 Econova. Made with</span>
               <Heart className="w-4 h-4 text-red-400 fill-current" />
